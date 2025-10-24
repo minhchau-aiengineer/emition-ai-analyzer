@@ -1,0 +1,17 @@
+@import "tailwindcss";
+
+/* ---- UI scale: phóng to toàn bộ font-size & spacing nhẹ nhàng ---- */
+:root{
+  --ui-scale: 1.08;     
+  --ui-base-font: 16px; 
+}
+
+/* Scale font toàn app */
+html { font-size: calc(var(--ui-base-font) * var(--ui-scale)); }
+
+/* Tăng nhẹ spacing & radius mặc định (không phá layout) */
+* { --tw-ring-offset-width: 0px; }
+.card-pad { padding: calc(1.5rem * var(--ui-scale)); }       
+.card-pad-lg { padding: calc(2rem * var(--ui-scale)); }      
+.btn-pad { padding: calc(0.75rem * var(--ui-scale)) calc(1.25rem * var(--ui-scale)); } 
+.round-xl { border-radius: calc(0.75rem * var(--ui-scale)); } 
