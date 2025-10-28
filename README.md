@@ -1,10 +1,10 @@
-============ CONFIG =========
-1. Tạo file trong frontend -> .env 
+## ============ CONFIG =========
+# 1. Tạo file trong frontend -> .env 
 {
-VITE_API_URL=http://localhost:...
+* VITE_API_URL=http://localhost:...
 
-VITE_CHAT_API=http://localhost:...
-VITE_CHAT_SHARED_SECRET=....              // cái này và cái "SHARED_SECRET" phải giống nhau
+* VITE_CHAT_API=http://localhost:...
+* VITE_CHAT_SHARED_SECRET=....              // cái này và cái "SHARED_SECRET" phải giống nhau
 }
 
 1. Tạo file trong server -> .env
