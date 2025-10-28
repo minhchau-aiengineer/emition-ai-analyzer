@@ -16,6 +16,8 @@ import VisionSentiment from "./pages/VisionSentiment";
 import FusedModel from "./pages/FusedModel";
 import MaxFusion from "./pages/MaxFusion";
 import TrashManager from "./pages/TrashManager";
+import HomePage from './pages/HomePage';
+import ChatWidget from './components/ChatWidget';
 
 
 type TabType = 'upload' | 'video' | 'audio';
@@ -28,7 +30,7 @@ function App() {
   const [emotionResults, setEmotionResults] = useState<EmotionResult[]>([]);
   const [summary, setSummary] = useState<AnalysisSummary | null>(null);
   const [chartType, setChartType] = useState<'pie' | 'bar'>('pie');
-  const [activeMenu, setActiveMenu] = useState<"dashboard" | "new-analysis" | "text-sentiment" | "audio-sentiment" | "vision-sentiment" | "fused-model" | "max-fusion" | "spam" | "trash" | "storage">("dashboard");
+  const [activeMenu, setActiveMenu] = useState<"home" | "dashboard" | "new-analysis" | "text-sentiment" | "audio-sentiment" | "vision-sentiment" | "fused-model" | "max-fusion" | "spam" | "trash" | "storage">("home");
 
 
   // Thu hồi URL khi unmount/reset
@@ -146,7 +148,9 @@ function App() {
 
       <div className="flex-1 overflow-y-auto">
         <div className="container mx-auto px-4 py-8 max-w-7xl">
-          {activeMenu === "dashboard" ? (
+          {activeMenu === "home" ? (
+            <HomePage />
+          ) : activeMenu === "dashboard" ? (
             <Dashboard />
           ) : activeMenu === "new-analysis" ? (
             <NewAnalysis />
@@ -338,6 +342,7 @@ function App() {
           )}
         </div>
       </div>
+      <ChatWidget />
     </div>
   );
 }

@@ -1,14 +1,14 @@
 import { useState } from "react";
 import "../types/drive-sidebar.css"
 import {
-  Plus, Home, Folder, Monitor, Users, Clock, Star,
+  Plus, Home as HomeIcon, Folder, Monitor, Users, Clock, Star,
   AlertCircle, Trash2, Cloud, ChevronRight, ChevronDown, Settings, HelpCircle,
   Upload, Video, Music,
   FileText, Mic, Image, Layers, Film
 } from "lucide-react";
 
 type ItemKey =
-  | "dashboard" | "new-analysis"
+  | "home" | "dashboard" | "new-analysis"
   // core analysis pages (replaced old drive-like keys)
   | "text-sentiment" | "audio-sentiment" | "vision-sentiment" | "fused-model" | "max-fusion"
   | "spam" | "trash" | "storage";
@@ -22,10 +22,13 @@ type SidebarItem = {
 };
 
 const PRIMARY: SidebarItem[] = [
-  // core app pages
-  { key: "dashboard", label: "Dashboard", icon: Home },
+  // NEW: Home
+  { key: "home", label: "Home", icon: HomeIcon },
 
-  // Sentiment analysis feature pages (replacing previous drive items)
+  // core app pages
+  { key: "dashboard", label: "Dashboard", icon: HomeIcon },
+
+  // Sentiment analysis feature pages
   { key: "text-sentiment", label: "Text Sentiment", icon: FileText },
   { key: "audio-sentiment", label: "Audio Sentiment", icon: Mic },
   { key: "vision-sentiment", label: "Vision Sentiment", icon: Image },
@@ -34,23 +37,23 @@ const PRIMARY: SidebarItem[] = [
 
   { key: "spam", label: "Discarded", icon: AlertCircle },
   { key: "trash", label: "Trash", icon: Trash2 },
+
+  // luôn để storage ở cuối mảng
   { key: "storage", label: "Storage", icon: Cloud, badge: "" },
 ];
 
 export interface DriveLeftSidebarProps {
   active?: ItemKey;
   onChange?: (key: ItemKey) => void;
-  usedStorageGB?: number;   // ví dụ 13.39
-  totalStorageGB?: number;  // ví dụ 2048 (2TB)
+  usedStorageGB?: number;
+  totalStorageGB?: number;
   className?: string;
-  // optional callbacks so App can wire actions to the main UI without
-  // changing existing onChange behavior.
   onUploadClick?: () => void;
   onRecord?: (mode: 'video' | 'audio') => void;
 }
 
 export default function DriveLeftSidebar({
-  active = "text-sentiment",
+  active = "home",
   onChange,
   usedStorageGB = 13.39,
   totalStorageGB = 2048,
@@ -58,9 +61,9 @@ export default function DriveLeftSidebar({
   onUploadClick,
   onRecord,
 }: DriveLeftSidebarProps) {
-  const [open, setOpen] = useState(true); // mở/đóng nhóm menu (mobile)
+  const [open, setOpen] = useState(true);
 
-  const pct = Math.min(100, Math.round((usedStorageGB / totalStorageGB) * 10000) / 100); // 2 chữ số
+  const pct = Math.min(100, Math.round((usedStorageGB / totalStorageGB) * 10000) / 100);
   const storageText = `${usedStorageGB.toLocaleString("vi-VN")} GB trong tổng số ${(totalStorageGB / 1024).toLocaleString("vi-VN")} TB`;
 
   const Item = ({ item }: { item: SidebarItem }) => {
@@ -75,16 +78,17 @@ export default function DriveLeftSidebar({
       >
         <Icon className="sb-icon shrink-0" />
         <span className="flex-1 text-left">{item.label}</span>
-        {item.badge && (
-          <span className="sb-badge text-gray-400">{item.badge}</span>
-        )}
+        {item.badge && (<span className="sb-badge text-gray-400">{item.badge}</span>)}
       </button>
     );
   };
 
+  const nonStorageItems = PRIMARY.filter(i => i.key !== "storage");
+  const storageItem = PRIMARY.find(i => i.key === "storage");
+
   return (
     <aside className={`drive-sidebar h-full w-72 min-w-56 max-w-80 bg-gray-900/40 border-r border-gray-800 px-3 py-3 ${className}`}>
-      {/* Header: quick actions + toggler mobile */}
+      {/* Header */}
       <div className="flex items-center justify-between mb-3">
         <div className="flex gap-2 items-center">
           <button
@@ -96,7 +100,6 @@ export default function DriveLeftSidebar({
             <span className="font-medium">New Analysis</span>
           </button>
         </div>
-
         <button
           className="md:hidden p-2 rounded-lg hover:bg-gray-800 text-gray-300"
           onClick={() => setOpen(!open)}
@@ -106,7 +109,7 @@ export default function DriveLeftSidebar({
         </button>
       </div>
 
-      {/* Quick action bar (upload / record) */}
+      {/* Quick actions */}
       <div className="mb-4 grid grid-cols-3 gap-2">
         <button
           onClick={() => onUploadClick ? onUploadClick() : onChange?.("text-sentiment")}
@@ -136,34 +139,33 @@ export default function DriveLeftSidebar({
 
       {/* Menu */}
       <nav className={`${open ? "block" : "hidden md:block"} space-y-1`}>
-        {PRIMARY.slice(0, 8).map((item) => (
+        {nonStorageItems.map((item) => (
           <Item key={item.key} item={item} />
         ))}
 
         {/* Storage block */}
-        <div className="pt-2 mt-2 border-t border-gray-800">
-          <Item item={PRIMARY[8]} />
-          <div className="px-3 py-2">
-            <div className="sb-progress w-full bg-gray-800 overflow-hidden">
-              <div
-                className="h-full bg-blue-500" style={{ width: `${pct}%` }}
-              />
+        {storageItem && (
+          <div className="pt-2 mt-2 border-t border-gray-800">
+            <Item item={storageItem} />
+            <div className="px-3 py-2">
+              <div className="sb-progress w-full bg-gray-800 overflow-hidden">
+                <div className="h-full bg-blue-500" style={{ width: `${pct}%` }} />
+              </div>
+              <div className="mt-2 text-xs text-gray-400">{storageText}</div>
+              <button
+                className="sb-btn mt-2 w-full text-center text-sm rounded-lg bg-gray-800 hover:bg-gray-700 text-gray-200 transition"
+                onClick={() => onChange?.("storage")}
+              >
+                Mua thêm bộ nhớ
+              </button>
             </div>
-            <div className="mt-2 text-xs text-gray-400">{storageText}</div>
-            <button
-              className="sb-btn mt-2 w-full text-center text-sm rounded-lg bg-gray-800 hover:bg-gray-700 text-gray-200 transition"
-              onClick={() => onChange?.("storage")}
-            >
-              Mua thêm bộ nhớ
-            </button>
           </div>
-        </div>
+        )}
 
         {/* Footer actions */}
         <div className="mt-3 flex items-center justify-between px-1 text-gray-400">
           <button className="sb-btn flex items-center gap-2 rounded hover:bg-gray-800">
             <Settings className="sb-icon" />
-
             <span className="text-sm">Cài đặt</span>
           </button>
           <button className="sb-btn flex items-center gap-2 rounded hover:bg-gray-800">
