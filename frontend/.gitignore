@@ -24,3 +24,10 @@ dist-ssr
 *.sw?
 
 /src/generated/prisma
+
+# Bỏ qua file môi trường
+.env
+.env.local
+.env.development
+.env.production
+.env.test
