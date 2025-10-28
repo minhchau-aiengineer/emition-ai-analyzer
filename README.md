@@ -9,11 +9,11 @@
 
 # 2. Tạo file trong server -> .env
 {
-*ALLOWED_ORIGINS=http://localhost:...
-*PORT=...
-*SHARED_SECRET=...                        // cái này và cái "VITE_CHAT_SHARED_SECRET" phải giống nhau
-*GEMINI_API_KEY=....                      // api_key của m
-*GEMINI_MODEL=...                         // tùy theo model của m
+* ALLOWED_ORIGINS=http://localhost:...
+* PORT=...
+* SHARED_SECRET=...                        // cái này và cái "VITE_CHAT_SHARED_SECRET" phải giống nhau
+* GEMINI_API_KEY=....                      // api_key của m
+* GEMINI_MODEL=...                         // tùy theo model của m
 }
 
 # 3. Nhớ config file package.json phù hợp với m
