@@ -1,6 +1,0 @@
-# Bỏ qua file môi trường
-.env
-.env.local
-.env.development
-.env.production
-.env.test

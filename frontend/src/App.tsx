@@ -18,6 +18,7 @@ import MaxFusion from "./pages/MaxFusion";
 import TrashManager from "./pages/TrashManager";
 import HomePage from './pages/HomePage';
 import ChatWidget from './components/ChatWidget';
+import FooterPape from './components/FooterPape';
 
 
 type TabType = 'upload' | 'video' | 'audio';
@@ -341,6 +342,7 @@ function App() {
             </>
           )}
         </div>
+        <FooterPape />
       </div>
       <ChatWidget />
     </div>
