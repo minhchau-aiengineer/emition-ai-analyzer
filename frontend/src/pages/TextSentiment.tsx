@@ -506,7 +506,7 @@ const AnimatedHeader: React.FC<AnimatedHeaderProps> = ({
         className="absolute top-0 h-[3px] w-[35%] rounded-full"
         style={{
           background: `linear-gradient(90deg,${lineColors[0]},${lineColors[1]},${lineColors[2]})`,
-          animation: "runLine 8s linear infinite",
+          animation: "runLine 2.8s linear infinite",
         }}
       />
     </div>

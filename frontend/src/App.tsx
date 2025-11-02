@@ -19,6 +19,9 @@ import TrashManager from "./pages/TrashManager";
 import HomePage from './pages/HomePage';
 import ChatWidget from './components/ChatWidget';
 import FooterPape from './components/FooterPape';
+import ReviewQueue from './pages/ReviewQueue';
+import StoragePage from './pages/StoragePage';
+import StorageUpgrade from './pages/StorageUpgrade';
 
 
 type TabType = 'upload' | 'video' | 'audio';
@@ -31,7 +34,7 @@ function App() {
   const [emotionResults, setEmotionResults] = useState<EmotionResult[]>([]);
   const [summary, setSummary] = useState<AnalysisSummary | null>(null);
   const [chartType, setChartType] = useState<'pie' | 'bar'>('pie');
-  const [activeMenu, setActiveMenu] = useState<"home" | "dashboard" | "new-analysis" | "text-sentiment" | "audio-sentiment" | "vision-sentiment" | "fused-model" | "max-fusion" | "spam" | "trash" | "storage">("home");
+  const [activeMenu, setActiveMenu] = useState<"home" | "dashboard" | "new-analysis" | "text-sentiment" | "audio-sentiment" | "vision-sentiment" | "fused-model" | "max-fusion" | "review-queue" | "trash" | "storage" | "storage-upgrade">("home");
 
 
   // Thu hồi URL khi unmount/reset
@@ -145,6 +148,7 @@ function App() {
         usedStorageGB={13.39}
         totalStorageGB={2048}
         className="sticky top-0 h-screen hidden md:block"
+        onBuyStorage={() => setActiveMenu("storage-upgrade")}
       />
 
       <div className="flex-1 overflow-y-auto">
@@ -165,182 +169,188 @@ function App() {
             <FusedModel />
           ) : activeMenu === "max-fusion" ? (
             <MaxFusion />
+          ) : activeMenu === "review-queue" ? (
+            <ReviewQueue />
           ) : activeMenu === "trash" ? (
             <TrashManager />
-          ) : (
-            <>
-              <header className="mb-12 text-center">
-                <div className="flex items-center justify-center gap-3 mb-4">
-                  <Brain className="w-12 h-12 text-blue-400" />
-                  <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">
-                    Emotion AI Analyzer
-                  </h1>
-                </div>
-                <p className="text-gray-400 text-lg max-w-2xl mx-auto">
-                  Upload or record video/audio to analyze facial and vocal emotions in real-time using advanced AI models
-                </p>
-              </header>
+          ) : activeMenu === "storage" ? (
+            <StoragePage />
+          ) : activeMenu === "storage-upgrade" ? (
+            <StorageUpgrade />
+          // ) : (
+          //   <>
+          //     <header className="mb-12 text-center">
+          //       <div className="flex items-center justify-center gap-3 mb-4">
+          //         <Brain className="w-12 h-12 text-blue-400" />
+          //         <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">
+          //           Emotion AI Analyzer
+          //         </h1>
+          //       </div>
+          //       <p className="text-gray-400 text-lg max-w-2xl mx-auto">
+          //         Upload or record video/audio to analyze facial and vocal emotions in real-time using advanced AI models
+          //       </p>
+          //     </header>
 
-              {!analysis ? (
-                <div className="max-w-4xl mx-auto space-y-8">
-                  <div className="bg-gray-800 card-pad border border-gray-700 shadow-xl round-xl">
-                    <div className="flex gap-2 mb-6 border-b border-gray-700">
-                      <button
-                        onClick={() => setActiveTab('upload')}
-                        className={`flex items-center gap-2 px-4 py-3 font-medium transition-colors ${activeTab === 'upload'
-                          ? 'text-blue-400 border-b-2 border-blue-400'
-                          : 'text-gray-400 hover:text-gray-300'
-                          }`}
-                      >
-                        <UploadIcon className="w-4 h-4" />
-                        Upload File
-                      </button>
-                      <button
-                        onClick={() => setActiveTab('video')}
-                        className={`flex items-center gap-2 px-4 py-3 font-medium transition-colors ${activeTab === 'video'
-                          ? 'text-blue-400 border-b-2 border-blue-400'
-                          : 'text-gray-400 hover:text-gray-300'
-                          }`}
-                      >
-                        <Video className="w-4 h-4" />
-                        Record Video
-                      </button>
-                      <button
-                        onClick={() => setActiveTab('audio')}
-                        className={`flex items-center gap-2 px-4 py-3 font-medium transition-colors ${activeTab === 'audio'
-                          ? 'text-blue-400 border-b-2 border-blue-400'
-                          : 'text-gray-400 hover:text-gray-300'
-                          }`}
-                      >
-                        <Mic className="w-4 h-4" />
-                        Record Audio
-                      </button>
-                    </div>
+          //     {!analysis ? (
+          //       <div className="max-w-4xl mx-auto space-y-8">
+          //         <div className="bg-gray-800 card-pad border border-gray-700 shadow-xl round-xl">
+          //           <div className="flex gap-2 mb-6 border-b border-gray-700">
+          //             <button
+          //               onClick={() => setActiveTab('upload')}
+          //               className={`flex items-center gap-2 px-4 py-3 font-medium transition-colors ${activeTab === 'upload'
+          //                 ? 'text-blue-400 border-b-2 border-blue-400'
+          //                 : 'text-gray-400 hover:text-gray-300'
+          //                 }`}
+          //             >
+          //               <UploadIcon className="w-4 h-4" />
+          //               Upload File
+          //             </button>
+          //             <button
+          //               onClick={() => setActiveTab('video')}
+          //               className={`flex items-center gap-2 px-4 py-3 font-medium transition-colors ${activeTab === 'video'
+          //                 ? 'text-blue-400 border-b-2 border-blue-400'
+          //                 : 'text-gray-400 hover:text-gray-300'
+          //                 }`}
+          //             >
+          //               <Video className="w-4 h-4" />
+          //               Record Video
+          //             </button>
+          //             <button
+          //               onClick={() => setActiveTab('audio')}
+          //               className={`flex items-center gap-2 px-4 py-3 font-medium transition-colors ${activeTab === 'audio'
+          //                 ? 'text-blue-400 border-b-2 border-blue-400'
+          //                 : 'text-gray-400 hover:text-gray-300'
+          //                 }`}
+          //             >
+          //               <Mic className="w-4 h-4" />
+          //               Record Audio
+          //             </button>
+          //           </div>
 
-                    <div className="mt-6">
-                      {activeTab === 'upload' && (
-                        <FileUploader onFileSelect={handleFileSelect} />
-                      )}
-                      {activeTab === 'video' && (
-                        <MediaCapture mode="video" onRecordingComplete={handleRecordingComplete} />
-                      )}
-                      {activeTab === 'audio' && (
-                        <MediaCapture mode="audio" onRecordingComplete={handleRecordingComplete} />
-                      )}
-                    </div>
+          //           <div className="mt-6">
+          //             {activeTab === 'upload' && (
+          //               <FileUploader onFileSelect={handleFileSelect} />
+          //             )}
+          //             {activeTab === 'video' && (
+          //               <MediaCapture mode="video" onRecordingComplete={handleRecordingComplete} />
+          //             )}
+          //             {activeTab === 'audio' && (
+          //               <MediaCapture mode="audio" onRecordingComplete={handleRecordingComplete} />
+          //             )}
+          //           </div>
 
-                    {selectedFile && activeTab === 'upload' && (
-                      <div className="mt-6 flex gap-3">
-                        <button
-                          onClick={handleAnalyze}
-                          className="flex-1 flex items-center justify-center gap-3 btn-pad bg-blue-600 hover:bg-blue-700 round-xl ..."
-                        >
-                          {isAnalyzing ? (
-                            <>
-                              <Loader2 className="w-5 h-5 animate-spin" />
-                              Analyzing...
-                            </>
-                          ) : (
-                            <>
-                              <Brain className="w-5 h-5" />
-                              Analyze Emotions
-                            </>
-                          )}
-                        </button>
-                      </div>
-                    )}
-                  </div>
+          //           {selectedFile && activeTab === 'upload' && (
+          //             <div className="mt-6 flex gap-3">
+          //               <button
+          //                 onClick={handleAnalyze}
+          //                 className="flex-1 flex items-center justify-center gap-3 btn-pad bg-blue-600 hover:bg-blue-700 round-xl ..."
+          //               >
+          //                 {isAnalyzing ? (
+          //                   <>
+          //                     <Loader2 className="w-5 h-5 animate-spin" />
+          //                     Analyzing...
+          //                   </>
+          //                 ) : (
+          //                   <>
+          //                     <Brain className="w-5 h-5" />
+          //                     Analyze Emotions
+          //                   </>
+          //                 )}
+          //               </button>
+          //             </div>
+          //           )}
+          //         </div>
 
-                  <div className="bg-gray-800/50 card-pad-lg border border-gray-700 round-xl">
-                    <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
-                      <BarChart3 className="w-5 h-5 text-blue-400" />
-                      Supported Emotions
-                    </h2>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                      {['Happy', 'Sad', 'Angry', 'Surprised', 'Neutral', 'Fearful', 'Disgusted'].map((emotion) => (
-                        <div key={emotion} className="bg-gray-700/50 rounded-lg p-3 text-center">
-                          <span className="text-gray-200">{emotion}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              ) : (
-                <div className="space-y-8">
-                  <div className="flex items-center justify-between">
-                    <h2 className="text-2xl font-bold">Analysis Results</h2>
-                    <button
-                      onClick={handleReset}
-                      className="px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg transition-colors"
-                    >
-                      New Analysis
-                    </button>
-                  </div>
+          //         <div className="bg-gray-800/50 card-pad-lg border border-gray-700 round-xl">
+          //           <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
+          //             <BarChart3 className="w-5 h-5 text-blue-400" />
+          //             Supported Emotions
+          //           </h2>
+          //           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          //             {['Happy', 'Sad', 'Angry', 'Surprised', 'Neutral', 'Fearful', 'Disgusted'].map((emotion) => (
+          //               <div key={emotion} className="bg-gray-700/50 rounded-lg p-3 text-center">
+          //                 <span className="text-gray-200">{emotion}</span>
+          //               </div>
+          //             ))}
+          //           </div>
+          //         </div>
+          //       </div>
+          //     ) : (
+          //       <div className="space-y-8">
+          //         <div className="flex items-center justify-between">
+          //           <h2 className="text-2xl font-bold">Analysis Results</h2>
+          //           <button
+          //             onClick={handleReset}
+          //             className="px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg transition-colors"
+          //           >
+          //             New Analysis
+          //           </button>
+          //         </div>
 
-                  {summary && <EmotionSummaryCard summary={summary} />}
+          //         {summary && <EmotionSummaryCard summary={summary} />}
 
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    <div className="bg-gray-800 rounded-xl p-6 border border-gray-700 shadow-xl">
-                      <div className="flex items-center justify-between mb-4">
-                        <h3 className="text-xl font-bold">Emotion Distribution</h3>
-                        <div className="flex gap-2">
-                          <button
-                            onClick={() => setChartType('pie')}
-                            className={`px-3 py-1 rounded text-sm ${chartType === 'pie' ? 'bg-blue-600' : 'bg-gray-700 hover:bg-gray-600'}`}
-                          >
-                            Pie
-                          </button>
-                          <button
-                            onClick={() => setChartType('bar')}
-                            className={`px-3 py-1 rounded text-sm ${chartType === 'bar' ? 'bg-blue-600' : 'bg-gray-700 hover:bg-gray-600'}`}
-                          >
-                            Bar
-                          </button>
-                        </div>
-                      </div>
-                      {summary && (
-                        <EmotionChart
-                          emotionDistribution={summary.emotion_distribution}
-                          chartType={chartType}
-                        />
-                      )}
-                    </div>
+          //         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          //           <div className="bg-gray-800 rounded-xl p-6 border border-gray-700 shadow-xl">
+          //             <div className="flex items-center justify-between mb-4">
+          //               <h3 className="text-xl font-bold">Emotion Distribution</h3>
+          //               <div className="flex gap-2">
+          //                 <button
+          //                   onClick={() => setChartType('pie')}
+          //                   className={`px-3 py-1 rounded text-sm ${chartType === 'pie' ? 'bg-blue-600' : 'bg-gray-700 hover:bg-gray-600'}`}
+          //                 >
+          //                   Pie
+          //                 </button>
+          //                 <button
+          //                   onClick={() => setChartType('bar')}
+          //                   className={`px-3 py-1 rounded text-sm ${chartType === 'bar' ? 'bg-blue-600' : 'bg-gray-700 hover:bg-gray-600'}`}
+          //                 >
+          //                   Bar
+          //                 </button>
+          //               </div>
+          //             </div>
+          //             {summary && (
+          //               <EmotionChart
+          //                 emotionDistribution={summary.emotion_distribution}
+          //                 chartType={chartType}
+          //               />
+          //             )}
+          //           </div>
 
-                    <div className="bg-gray-800 rounded-xl p-6 border border-gray-700 shadow-xl">
-                      <h3 className="text-xl font-bold mb-4">Emotion Timeline</h3>
-                      <EmotionTimeline emotionResults={emotionResults} />
-                    </div>
-                  </div>
+          //           <div className="bg-gray-800 rounded-xl p-6 border border-gray-700 shadow-xl">
+          //             <h3 className="text-xl font-bold mb-4">Emotion Timeline</h3>
+          //             <EmotionTimeline emotionResults={emotionResults} />
+          //           </div>
+          //         </div>
 
-                  <div className="bg-gray-800 rounded-xl p-6 border border-gray-700 shadow-xl">
-                    <h3 className="text-xl font-bold mb-4">Detection Details</h3>
-                    <div className="overflow-x-auto">
-                      <table className="w-full text-sm">
-                        <thead>
-                          <tr className="border-b border-gray-700">
-                            <th className="text-left py-3 px-4">Time</th>
-                            <th className="text-left py-3 px-4">Emotion</th>
-                            <th className="text-left py-3 px-4">Confidence</th>
-                            <th className="text-left py-3 px-4">Type</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {emotionResults.slice(0, 10).map((result) => (
-                            <tr key={result.id} className="border-b border-gray-700/50 hover:bg-gray-700/30">
-                              <td className="py-3 px-4">{result.timestamp.toFixed(1)}s</td>
-                              <td className="py-3 px-4 capitalize">{result.emotion_type}</td>
-                              <td className="py-3 px-4">{(result.confidence * 100).toFixed(1)}%</td>
-                              <td className="py-3 px-4 capitalize">{result.detection_type}</td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </>
-          )}
+          //         <div className="bg-gray-800 rounded-xl p-6 border border-gray-700 shadow-xl">
+          //           <h3 className="text-xl font-bold mb-4">Detection Details</h3>
+          //           <div className="overflow-x-auto">
+          //             <table className="w-full text-sm">
+          //               <thead>
+          //                 <tr className="border-b border-gray-700">
+          //                   <th className="text-left py-3 px-4">Time</th>
+          //                   <th className="text-left py-3 px-4">Emotion</th>
+          //                   <th className="text-left py-3 px-4">Confidence</th>
+          //                   <th className="text-left py-3 px-4">Type</th>
+          //                 </tr>
+          //               </thead>
+          //               <tbody>
+          //                 {emotionResults.slice(0, 10).map((result) => (
+          //                   <tr key={result.id} className="border-b border-gray-700/50 hover:bg-gray-700/30">
+          //                     <td className="py-3 px-4">{result.timestamp.toFixed(1)}s</td>
+          //                     <td className="py-3 px-4 capitalize">{result.emotion_type}</td>
+          //                     <td className="py-3 px-4">{(result.confidence * 100).toFixed(1)}%</td>
+          //                     <td className="py-3 px-4 capitalize">{result.detection_type}</td>
+          //                   </tr>
+          //                 ))}
+          //               </tbody>
+          //             </table>
+          //           </div>
+          //         </div>
+          //       </div>
+          //     )}
+          //   </>
+          ):  null}
         </div>
         <FooterPape />
       </div>

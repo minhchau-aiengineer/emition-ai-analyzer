@@ -695,6 +695,12 @@ export default function HomePage() {
               <b>Sentiment Analysis</b> là nền tảng để mở rộng sang <i>Text</i>,{" "}
               <i>Audio</i>, <i>Vision</i> – hướng tới nhận diện cảm xúc đa phương thức.
             </p>
+            <br />
+            <Figure
+              src="/assets/trang-dau.png"
+              caption="Sentiment Analysis"
+            />
+            <br />
           </Section>
 
           {/* ====== Sentiment Analysis là gì ====== */}
