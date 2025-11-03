@@ -1,4 +1,5 @@
 
+import * as React from 'react';
 import { useState, useEffect } from 'react';
 import { Brain, Upload as UploadIcon, Video, Mic, BarChart3, Loader2 } from 'lucide-react';
 import { FileUploader } from './components/FileUploader';

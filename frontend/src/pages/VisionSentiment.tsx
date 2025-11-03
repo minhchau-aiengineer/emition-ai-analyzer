@@ -560,10 +560,23 @@ const ImagePreview: React.FC<{
     if (!ctx) return;
 
     const dpr = window.devicePixelRatio || 1;
-    const maxW = 880;
-    const ratio = Math.min(1, maxW / img.width);
-    const w = Math.round(img.width * ratio);
-    const h = Math.round(img.height * ratio);
+    
+    // Calculate size to maintain aspect ratio within max dimensions
+    const maxW = 500; // Reduced max width
+    const maxH = 400; // Max height constraint
+    
+    let w = img.width;
+    let h = img.height;
+    
+    // Scale down to fit within bounds while maintaining aspect ratio
+    const rw = maxW / w;
+    const rh = maxH / h;
+    const r = Math.min(rw, rh, 1); // Use 1 as max to prevent upscaling
+    
+    w = Math.round(w * r);
+    h = Math.round(h * r);
+    
+    // Set canvas size
     canvas.width = w * dpr;
     canvas.height = h * dpr;
     canvas.style.width = w + "px";
@@ -575,8 +588,8 @@ const ImagePreview: React.FC<{
     ctx.globalAlpha = 1;
     ctx.drawImage(img, 0, 0, w, h);
 
-    // boxes
-    drawBoxes(ctx, boxes, ratio);
+    // boxes - use the same scale ratio we calculated for the image
+    drawBoxes(ctx, boxes, r);
 
     // active highlight
     const act = boxes.find((b) => b.id === activeId);
@@ -585,7 +598,7 @@ const ImagePreview: React.FC<{
       ctx.setLineDash([]);
       ctx.strokeStyle = "rgba(168,85,247,.9)"; // violet
       ctx.lineWidth = 3;
-      ctx.strokeRect(act.x * ratio, act.y * ratio, act.w * ratio, act.h * ratio);
+      ctx.strokeRect(act.x * r, act.y * r, act.w * r, act.h * r);
       ctx.restore();
     }
   }, [img, boxes, activeId]);
@@ -762,6 +775,8 @@ export default function VisionSentimentPage(): React.ReactElement {
   /* boxes + picked face */
   const [boxes, setBoxes] = useState<Box[]>([]);
   const [activeId, setActiveId] = useState<number | null>(null);
+  // thumbnails for detected faces (id -> dataURL)
+  const [thumbs, setThumbs] = useState<Record<number, string>>({});
 
   /* result (current) */
   const [loading, setLoading] = useState(false);
@@ -817,41 +832,108 @@ export default function VisionSentimentPage(): React.ReactElement {
   const takeSnapshot = () => {
     const v = videoRef.current;
     if (!v) return;
+    
+    // Use same max dimensions as preview
+    const maxW = 500;
+    const maxH = 400;
+    
+    // Calculate scale to fit within bounds
+    const rw = maxW / v.videoWidth;
+    const rh = maxH / v.videoHeight;
+    const r = Math.min(rw, rh, 1);
+    
+    const w = Math.round(v.videoWidth * r);
+    const h = Math.round(v.videoHeight * r);
+    
     const c = document.createElement("canvas");
-    c.width = v.videoWidth;
-    c.height = v.videoHeight;
+    c.width = w;
+    c.height = h;
     const ctx = c.getContext("2d");
     if (!ctx) return;
-    ctx.drawImage(v, 0, 0);
+    
+    // Draw scaled video frame
+    ctx.drawImage(v, 0, 0, w, h);
+    
     const url = c.toDataURL("image/jpeg", 0.92);
     if (snapshotUrl) URL.revokeObjectURL(snapshotUrl);
     setSnapshotUrl(url);
     setFile(null);
-    runFaceDetection(url, "Camera snapshot");
-  };
-
-  /* common pipeline: run face detection -> enable analyze */
-  const runFaceDetection = async (url: string, _sourceReadable?: string) => {
-    // mock on client — thay bằng API của bạn khi sẵn sàng
-    await new Promise((r) => setTimeout(r, 350));
-    const faces = Math.max(1, Math.round(Math.random() * 1) + 1);
-    const arr: Box[] = Array.from({ length: faces }).map((_, i) => ({
-      id: i + 1,
-      x: 60 + i * 120,
-      y: 60 + (i % 2) * 70,
-      w: 140,
-      h: 140,
-    }));
-    setBoxes(arr);
-    setActiveId(arr[0]?.id ?? null);
   };
 
   const onFilePicked = (f: File) => {
     if (snapshotUrl) URL.revokeObjectURL(snapshotUrl);
     setSnapshotUrl(null);
     setFile(f);
-    runFaceDetection(URL.createObjectURL(f), `${f.name} • ${formatBytes(f.size)}`);
+    // Clear any existing boxes when new file is picked
+    setBoxes([]);
+    setActiveId(null);
   };
+
+  // Generate thumbnails for detected face boxes so we can show them in the strip.
+  useEffect(() => {
+    // Reset if no source or no boxes
+    if (!sourceUrl || !boxes?.length) {
+      setThumbs({});
+      return;
+    }
+
+    let cancelled = false;
+    const i = new Image();
+    i.crossOrigin = "anonymous"; // allow canvas extraction if hosted
+    i.onload = () => {
+      if (cancelled) return;
+      const map: Record<number, string> = {};
+      boxes.forEach((b) => {
+        try {
+          // Create canvas sized to the face box but scaled to a square thumbnail
+          const thumbSize = 88; // match UI box size
+          const c = document.createElement("canvas");
+          const ctx = c.getContext("2d");
+          if (!ctx) return;
+
+          const sx = Math.max(0, Math.floor(b.x));
+          const sy = Math.max(0, Math.floor(b.y));
+          const sw = Math.max(1, Math.floor(b.w));
+          const sh = Math.max(1, Math.floor(b.h));
+
+          // keep aspect ratio and fit into thumbSize
+          const scale = Math.min(thumbSize / sw, thumbSize / sh);
+          c.width = Math.round(sw * scale);
+          c.height = Math.round(sh * scale);
+
+          // draw cropped region
+          ctx.drawImage(i, sx, sy, sw, sh, 0, 0, c.width, c.height);
+
+          // optional: place on square canvas for consistent size
+          if (c.width !== thumbSize || c.height !== thumbSize) {
+            const square = document.createElement("canvas");
+            const sctx = square.getContext("2d");
+            if (!sctx) return;
+            square.width = thumbSize;
+            square.height = thumbSize;
+            sctx.fillStyle = "transparent";
+            sctx.fillRect(0, 0, thumbSize, thumbSize);
+            // center the face crop
+            const dx = Math.round((thumbSize - c.width) / 2);
+            const dy = Math.round((thumbSize - c.height) / 2);
+            sctx.drawImage(c, 0, 0, c.width, c.height, dx, dy, c.width, c.height);
+            map[b.id] = square.toDataURL("image/png");
+          } else {
+            map[b.id] = c.toDataURL("image/png");
+          }
+        } catch (e) {
+          // ignore per-face errors
+        }
+      });
+      setThumbs(map);
+    };
+    i.onerror = () => setThumbs({});
+    i.src = sourceUrl;
+
+    return () => {
+      cancelled = true;
+    };
+  }, [sourceUrl, boxes]);
 
   /* analyze */
   const analyze = async () => {
@@ -859,31 +941,92 @@ export default function VisionSentimentPage(): React.ReactElement {
     setLoading(true);
     const start = performance.now();
 
-    // TODO: gọi API thật; phần dưới mock kết quả
-    await new Promise((r) => setTimeout(r, 650));
-    const latency = Math.round(performance.now() - start);
-    const topK = [
-      { label: "Happy", score: 0.61 },
-      { label: "Neutral", score: 0.22 },
-      { label: "Surprised", score: 0.09 },
-    ];
-    const row: ResultRow = {
-      id: String(Date.now()),
-      source:
-        tab === "camera"
-          ? "Camera snapshot"
-          : file
-          ? `${file.name} • ${formatBytes(file.size)}`
-          : "Image",
-      label: "Happy",
-      confidence: 0.78,
-      latency,
-      topK,
-      ts: Date.now(),
-    };
-    setCurrent(row);
-    setRows((p) => [row, ...p]);
-    setLoading(false);
+    try {
+      // Build form data. Assumption: backend expects key 'file' with the image.
+      const fd = new FormData();
+      if (file) {
+        fd.append("file", file, file.name);
+      } else if (snapshotUrl) {
+        // snapshotUrl might be a data URL; convert to blob
+        const res = await fetch(snapshotUrl);
+        const blob = await res.blob();
+        fd.append("file", blob, `snapshot-${Date.now()}.jpg`);
+      } else {
+        setLoading(false);
+        return;
+      }
+
+      const resp = await fetch("http://localhost:8000/face/predict", {
+        method: "POST",
+        body: fd,
+      });
+
+      if (!resp.ok) {
+        const txt = await resp.text();
+        throw new Error(`Server returned ${resp.status}: ${txt}`);
+      }
+
+      const data = await resp.json();
+      const latency = Math.round(performance.now() - start);
+
+      // build topK array from all_emotions (keep original percentage values)
+      const allEm: Record<string, number> = data.all_emotions || {};
+      const topK = Object.entries(allEm)
+        .map(([label, val]) => ({ label, score: val }))  // keep original value (already percentage)
+        .sort((a, b) => b.score - a.score)
+        .slice(0, 6);
+
+      // face box - convert from left,top,right,bottom to x,y,w,h
+      const fl = data.face_location;
+      if (fl) {
+        const x = fl.left;
+        const y = fl.top;
+        const w = fl.right - fl.left;
+        const h = fl.bottom - fl.top;
+        setBoxes([{ id: 1, x, y, w, h }]);
+        setActiveId(1);
+      }
+
+      // try to make result_image accessible: assume backend serves static files under /static/results/<filename>
+      let resultImageUrl: string | null = null;
+      if (data.result_image) {
+        const p = String(data.result_image).replace(/\\/g, "/");
+        const parts = p.split("/");
+        const fname = parts[parts.length - 1];
+        if (fname) resultImageUrl = `http://localhost:8000/static/results/${fname}`;
+      }
+
+      const row: ResultRow = {
+        id: String(Date.now()),
+        source:
+          tab === "camera"
+            ? "Camera snapshot"
+            : file
+            ? `${file.name} • ${formatBytes(file.size)}`
+            : "Image",
+        label: (data.emotion || "Unknown").toString(),
+        confidence: Number(data.confidence) ?? 0, // keep original value (already 0-1)
+        latency,
+        topK,
+        ts: Date.now(),
+      };
+
+      setCurrent(row);
+      setRows((p) => [row, ...p]);
+
+      // if server returned a result image URL, show it as snapshot for review
+      if (resultImageUrl) {
+        if (snapshotUrl) URL.revokeObjectURL(snapshotUrl);
+        setSnapshotUrl(resultImageUrl);
+        setFile(null);
+      }
+    } catch (err: any) {
+      console.error("Vision analyze error:", err);
+      // simple user-visible error: reuse current state to show message
+      alert(`Analysis failed: ${err?.message ?? err}`);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const clearAllInputs = () => {
@@ -1048,15 +1191,18 @@ export default function VisionSentimentPage(): React.ReactElement {
                   key={b.id}
                   onClick={() => setActiveId(b.id)}
                   className={cx(
-                    "min-w-[88px] h-[88px] rounded-xl border transition-colors",
+                    "min-w-[88px] h-[88px] rounded-xl border overflow-hidden bg-slate-700/10 flex items-center justify-center",
                     activeId === b.id
                       ? "border-sky-400 ring-2 ring-sky-500/40"
                       : "border-white/10"
                   )}
+                  title={`Face ${b.id}`}
                 >
-                  <div className="w-full h-full bg-slate-700/40 flex items-center justify-center text-slate-300 text-sm">
-                    #{b.id}
-                  </div>
+                  {thumbs[b.id] ? (
+                    <img src={thumbs[b.id]} alt={`Face ${b.id}`} className="w-full h-full object-cover" />
+                  ) : (
+                    <div className="w-full h-full bg-slate-700/40 flex items-center justify-center text-slate-300 text-sm">#{b.id}</div>
+                  )}
                 </button>
               ))}
             </div>
